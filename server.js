@@ -2,19 +2,20 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 
-import connectDB from "../database/db.js";
+// ✅ FIXED PATHS (NO ../)
+import connectDB from "./database/db.js";
 
 // ROUTES
-import userRoute from "../routes/userRoute.js";
-import authRoute from "../routes/authRoute.js";
-import adminRoute from "../routes/adminRoute.js";
-import enrollRoute from "../routes/enrollRoutes.js";
-import moduleRoutes from "../routes/moduleRoutes.js";
-import refundRoutes from "../routes/refundRoutes.js";
-import notesRoutes from "../routes/notesRoutes.js";
+import userRoute from "./routes/userRoute.js";
+import authRoute from "./routes/authRoute.js";
+import adminRoute from "./routes/adminRoute.js";
+import enrollRoute from "./routes/enrollRoutes.js";
+import moduleRoutes from "./routes/moduleRoutes.js";
+import refundRoutes from "./routes/refundRoutes.js";
+import notesRoutes from "./routes/notesRoutes.js";
 
 // CONFIG
-import "../config/passport.js";
+import "./config/passport.js";
 
 dotenv.config();
 
@@ -55,7 +56,7 @@ app.get("/", (req, res) => {
   res.send("Backend Running Successfully 🚀");
 });
 
-// ================= START SERVER (IMPORTANT FOR RAILWAY) =================
+// ================= START SERVER =================
 const PORT = process.env.PORT || 8000;
 
 app.listen(PORT, () => {

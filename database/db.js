@@ -2,23 +2,16 @@ import mongoose from "mongoose";
 
 const connectDB = async () => {
   try {
-
-    const mongoURI = process.env.MONGODB_URI;
-
-    if (!mongoURI) {
-      throw new Error("MONGODB_URI is missing in .env");
+    if (!process.env.MONGODB_URI) {
+      console.log("❌ Missing MONGODB_URI");
+      return;
     }
 
-    await mongoose.connect(mongoURI);
+    await mongoose.connect(process.env.MONGODB_URI);
 
-    console.log("✅ MongoDB connected successfully");
-
-  } catch (error) {
-
-    console.log("❌ MongoDB connection error");
-    console.log(error);
-
-    process.exit(1);
+    console.log("✅ MongoDB connected");
+  } catch (err) {
+    console.log("❌ MongoDB error:", err.message);
   }
 };
 

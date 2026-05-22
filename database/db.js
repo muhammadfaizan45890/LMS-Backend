@@ -5,15 +5,15 @@ const connectDB = async () => {
     const uri = process.env.MONGODB_URI;
 
     if (!uri) {
-      console.log("❌ MONGODB_URI is missing");
+      console.log("❌ MONGODB_URI is missing in Railway env variables");
       return;
     }
 
     await mongoose.connect(uri);
 
-    console.log("✅ MongoDB connected");
+    console.log("✅ MongoDB connected successfully");
   } catch (err) {
-    console.log("❌ MongoDB error:");
+    console.log("❌ MongoDB connection failed:");
     console.log(err.message);
   }
 };

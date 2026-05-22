@@ -20,17 +20,21 @@ dotenv.config();
 
 const app = express();
 
-// ================= DATABASE =================
-connectDB();
+// ================= DATABASE (SAFE) =================
+connectDB().catch((err) => {
+  console.log("❌ DB Connection Failed:", err);
+});
 
 // ================= MIDDLEWARE =================
-app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "https://https://lms-learningmanagementsystem.vercel.app/"
-  ],
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://lms-learningmanagementsystem.vercel.app"
+    ],
+    credentials: true
+  })
+);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -50,7 +54,7 @@ app.use("/notes", notesRoutes);
 
 // ================= TEST ROUTE =================
 app.get("/", (req, res) => {
-  res.send("Backend Running Successfully");
+  res.send("Backend Running Successfully 🚀");
 });
 
 export default app;

@@ -20,10 +20,8 @@ dotenv.config();
 
 const app = express();
 
-// ================= DATABASE (SAFE) =================
-connectDB().catch((err) => {
-  console.log("❌ DB Connection Failed:", err);
-});
+// ================= DATABASE =================
+connectDB();
 
 // ================= MIDDLEWARE =================
 app.use(
@@ -57,4 +55,9 @@ app.get("/", (req, res) => {
   res.send("Backend Running Successfully 🚀");
 });
 
-export default app;
+// ================= START SERVER (IMPORTANT FOR RAILWAY) =================
+const PORT = process.env.PORT || 8000;
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});

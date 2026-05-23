@@ -2,6 +2,7 @@ import express from "express";
 import {
   getAllUsers,
   deleteUser,
+  verifyUser,
   getDashboardStats,
   addCourse,
   getCourses,
@@ -16,6 +17,8 @@ const router = express.Router();
 // ================= USERS =================
 router.get("/users", getAllUsers);
 router.delete("/user/:id", deleteUser);
+router.put("/verify-user/:id", verifyUser)
+
 
 // ================= DASHBOARD =================
 router.get("/dashboard", getDashboardStats);

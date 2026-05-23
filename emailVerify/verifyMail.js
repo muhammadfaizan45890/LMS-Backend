@@ -60,19 +60,26 @@ import handlebars from "handlebars";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ================= TRANSPORTER (MOVE OUTSIDE) =================
+// ================= TRANSPORTER =================
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
+
   auth: {
     user: process.env.MAIL_USER,
     pass: process.env.MAIL_PASS,
   },
+
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 10000,
 });
 
-// Optional: verify connection (helps debug Railway)
+// ================= VERIFY SMTP =================
 transporter.verify((error, success) => {
   if (error) {
-    console.log("SMTP ERROR:", error.message);
+    console.log("SMTP ERROR ❌:", error.message);
   } else {
     console.log("SMTP READY ✔");
   }
@@ -81,19 +88,22 @@ transporter.verify((error, success) => {
 // ================= EMAIL FUNCTION =================
 export const verifyMail = async (token, email) => {
   try {
-    // Load template
+    // ================= LOAD TEMPLATE =================
+    const templatePath = path.join(__dirname, "template.hbs");
+
     const emailTemplateSource = fs.readFileSync(
-      path.join(__dirname, "template.hbs"),
+      templatePath,
       "utf-8"
     );
 
+    // ================= COMPILE HANDLEBARS =================
     const template = handlebars.compile(emailTemplateSource);
 
     const htmlToSend = template({
       token: encodeURIComponent(token),
     });
 
-    // Mail config
+    // ================= MAIL OPTIONS =================
     const mailConfigurations = {
       from: `"LMS System" <${process.env.MAIL_USER}>`,
       to: email,
@@ -101,11 +111,18 @@ export const verifyMail = async (token, email) => {
       html: htmlToSend,
     };
 
-    // Send mail
+    // ================= SEND EMAIL =================
     const info = await transporter.sendMail(mailConfigurations);
 
-    console.log("Verification email sent ✔:", info.messageId);
+    console.log("Verification email sent ✔");
+    console.log("Message ID:", info.messageId);
+
+    return true;
+
   } catch (error) {
-    console.log("Email sending failed ❌:", error.message);
+    console.log("Email sending failed ❌");
+    console.log(error);
+
+    return false;
   }
 };

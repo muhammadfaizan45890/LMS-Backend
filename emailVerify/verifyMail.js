@@ -53,33 +53,49 @@ import nodemailer from "nodemailer";
 import "dotenv/config";
 import fs from "fs";
 import path from "path";
+import dns from "dns";
 import { fileURLToPath } from "url";
 import handlebars from "handlebars";
+
+// ================= FIX IPV4 FOR RAILWAY =================
+dns.setDefaultResultOrder("ipv4first");
 
 // ================= PATH FIX =================
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// ================= CHECK ENV VARIABLES =================
+if (!process.env.MAIL_USER || !process.env.MAIL_PASS) {
+  console.log("❌ MAIL_USER or MAIL_PASS is missing in .env");
+}
+
 // ================= TRANSPORTER =================
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
+  port: 587,
+  secure: false,
 
   auth: {
     user: process.env.MAIL_USER,
     pass: process.env.MAIL_PASS,
   },
 
-  connectionTimeout: 10000,
-  greetingTimeout: 10000,
-  socketTimeout: 10000,
+  tls: {
+    rejectUnauthorized: false,
+  },
+
+  family: 4,
+
+  connectionTimeout: 30000,
+  greetingTimeout: 30000,
+  socketTimeout: 30000,
 });
 
 // ================= VERIFY SMTP =================
 transporter.verify((error, success) => {
   if (error) {
-    console.log("SMTP ERROR ❌:", error.message);
+    console.log("SMTP ERROR ❌");
+    console.log(error);
   } else {
     console.log("SMTP READY ✔");
   }
@@ -88,15 +104,26 @@ transporter.verify((error, success) => {
 // ================= EMAIL FUNCTION =================
 export const verifyMail = async (token, email) => {
   try {
-    // ================= LOAD TEMPLATE =================
+
+    console.log("STARTING EMAIL SEND...");
+    console.log("SENDING TO:", email);
+
+    // ================= TEMPLATE PATH =================
     const templatePath = path.join(__dirname, "template.hbs");
 
+    // ================= CHECK TEMPLATE EXISTS =================
+    if (!fs.existsSync(templatePath)) {
+      console.log("❌ template.hbs not found");
+      return false;
+    }
+
+    // ================= LOAD TEMPLATE =================
     const emailTemplateSource = fs.readFileSync(
       templatePath,
       "utf-8"
     );
 
-    // ================= COMPILE HANDLEBARS =================
+    // ================= COMPILE TEMPLATE =================
     const template = handlebars.compile(emailTemplateSource);
 
     const htmlToSend = template({
@@ -114,14 +141,24 @@ export const verifyMail = async (token, email) => {
     // ================= SEND EMAIL =================
     const info = await transporter.sendMail(mailConfigurations);
 
-    console.log("Verification email sent ✔");
-    console.log("Message ID:", info.messageId);
+    console.log("✅ Verification email sent");
+    console.log("📩 Message ID:", info.messageId);
 
     return true;
 
   } catch (error) {
-    console.log("Email sending failed ❌");
-    console.log(error);
+
+    console.log("❌ Email sending failed");
+
+    if (error.code) {
+      console.log("CODE:", error.code);
+    }
+
+    if (error.response) {
+      console.log("RESPONSE:", error.response);
+    }
+
+    console.log(error.message);
 
     return false;
   }

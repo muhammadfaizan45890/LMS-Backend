@@ -29,6 +29,44 @@ export const deleteUser = async (req, res) => {
   }
 };
 
+
+
+export const verifyUser = async (req, res) => {
+  try {
+
+    const { isVerified } = req.body
+
+    const user = await User.findById(req.params.id)
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      })
+    }
+
+    user.isVerified = isVerified
+
+    await user.save()
+
+    res.status(200).json({
+      message: isVerified
+        ? "User verified successfully"
+        : "User verification removed",
+      user,
+    })
+
+  } catch (error) {
+
+    res.status(500).json({
+      message: error.message,
+    })
+  }
+}
+
+
+
+
+
 export const getDashboardStats = async (req, res) => {
   try {
     const users = await User.find();

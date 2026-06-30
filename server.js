@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import passport from "passport";           // used indirectly (required for auth routes)
+// import passport from "passport";           // used indirectly (required for auth routes)
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
 import path from "path";
@@ -20,7 +20,7 @@ const __dirname = path.dirname(__filename);
 // 3. Database connection & Passport config
 // ------------------------------------------------------------
 import connectDB from "./database/db.js";
-import "./config/passport.js";   // ← only once
+// import "./config/passport.js";   // ← only once
 
 // ------------------------------------------------------------
 // 4. Routes

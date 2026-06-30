@@ -97,9 +97,16 @@
 
 
 
-
 import jwt from "jsonwebtoken";
 import { User } from "../models/userModel.js";
+
+// Ensure the JWT secret is defined at startup
+const JWT_SECRET = process.env.SECRET_KEY;
+if (!JWT_SECRET) {
+  console.error("❌ SECRET_KEY is not defined in environment variables.");
+  // In production, you might want to throw an error and exit
+  // throw new Error("SECRET_KEY is required");
+}
 
 // ================================
 //        AUTHENTICATION
@@ -116,7 +123,7 @@ export const isAuthenticated = async (req, res, next) => {
     }
 
     const token = authHeader.split(" ")[1];
-    const decoded = jwt.verify(token, process.env.SECRET_KEY);
+    const decoded = jwt.verify(token, JWT_SECRET);
     const user = await User.findById(decoded.id).select("-password");
 
     if (!user) {
@@ -126,11 +133,13 @@ export const isAuthenticated = async (req, res, next) => {
       });
     }
 
+    // Attach user to request
     req.user = user;
     req.userId = user._id;
 
     next();
   } catch (error) {
+    // Handle specific JWT errors
     if (error.name === "TokenExpiredError") {
       return res.status(401).json({
         success: false,
@@ -145,9 +154,11 @@ export const isAuthenticated = async (req, res, next) => {
       });
     }
 
+    // Catch-all for any other errors
+    console.error("Auth middleware error:", error);
     return res.status(500).json({
       success: false,
-      message: error.message,
+      message: "Authentication failed due to server error",
     });
   }
 };
@@ -164,8 +175,9 @@ export const isAdmin = (req, res, next) => {
     });
   }
 
-  // Check if user has admin role
-  if (req.user.role !== "admin") {
+  // Check if user has admin role (case-insensitive, handles missing role)
+  const userRole = req.user.role?.toLowerCase();
+  if (userRole !== "admin") {
     return res.status(403).json({
       success: false,
       message: "Access denied. Admin privileges required.",

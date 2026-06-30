@@ -1,60 +1,153 @@
+// import express from "express";
+
+// import {
+//     changePassword,
+//     forgotPassword,
+//     loginUser,
+//     logoutUser,
+//     registerUser,
+//     verification,
+//     verifyOTP
+// } from "../controllers/userController.js";
+
+// import {
+//     isAuthenticated,
+//     isAdmin
+// } from "../middleware/isAuthenticated.js";
+
+// import {
+//     userSchema,
+//     validateUser
+// } from "../validators/userValidate.js";
+
+// const router = express.Router();
+
+
+// // PUBLIC ROUTES
+// router.post('/register', validateUser(userSchema), registerUser);
+
+// router.post('/verify', verification);
+
+// router.post('/login', loginUser);
+
+// router.post('/forgot-password', forgotPassword);
+
+// router.post('/verify-otp/:email', verifyOTP);
+
+// router.post('/change-password/:email', changePassword);
+
+
+// // PROTECTED ROUTE
+// router.post('/logout', isAuthenticated, logoutUser);
+
+
+// // ADMIN ROUTE
+// router.get(
+//     '/admin/dashboard',
+//     isAuthenticated,
+//     isAdmin,
+//     (req, res) => {
+
+//         res.status(200).json({
+//             success: true,
+//             message: "Welcome Admin",
+//             admin: req.user
+//         });
+
+//     }
+// );
+
+// export default router;
+
+
+
 import express from "express";
-
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 import {
-    changePassword,
-    forgotPassword,
-    loginUser,
-    logoutUser,
-    registerUser,
-    verification,
-    verifyOTP
+  changePassword,
+  forgotPassword,
+  loginUser,
+  logoutUser,
+  registerUser,
+  verification,
+  verifyOTP,
+  getProfile,
+  updateProfile,
 } from "../controllers/userController.js";
-
-import {
-    isAuthenticated,
-    isAdmin
-} from "../middleware/isAuthenticated.js";
-
-import {
-    userSchema,
-    validateUser
-} from "../validators/userValidate.js";
+import { isAuthenticated } from "../middleware/isAuthenticated.js";
+import { userSchema, validateUser } from "../validators/userValidate.js";
 
 const router = express.Router();
 
+// ------------------ Multer setup for avatar upload ------------------
+const uploadDir = "uploads/";
+// Ensure upload directory exists
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
 
-// PUBLIC ROUTES
-router.post('/register', validateUser(userSchema), registerUser);
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const unique = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, unique + path.extname(file.originalname));
+  },
+});
 
-router.post('/verify', verification);
+// File filter (optional – only allow images)
+const fileFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith("image/")) {
+    cb(null, true);
+  } else {
+    cb(new Error("Only image files are allowed"), false);
+  }
+};
 
-router.post('/login', loginUser);
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter,
+});
 
-router.post('/forgot-password', forgotPassword);
+// ------------------ Authentication routes ------------------
+router.post("/register", validateUser(userSchema), registerUser);
+router.post("/verify", verification);
+router.post("/login", loginUser);
+router.post("/logout", isAuthenticated, logoutUser);
+router.post("/forgot-password", forgotPassword);
+router.post("/verify-otp/:email", verifyOTP);
+router.post("/change-password/:email", changePassword);
 
-router.post('/verify-otp/:email', verifyOTP);
-
-router.post('/change-password/:email', changePassword);
-
-
-// PROTECTED ROUTE
-router.post('/logout', isAuthenticated, logoutUser);
-
-
-// ADMIN ROUTE
-router.get(
-    '/admin/dashboard',
-    isAuthenticated,
-    isAdmin,
-    (req, res) => {
-
-        res.status(200).json({
-            success: true,
-            message: "Welcome Admin",
-            admin: req.user
+// ------------------ Profile routes (protected) ------------------
+router.get("/profile", isAuthenticated, getProfile);
+router.put(
+  "/profile",
+  isAuthenticated,
+  (req, res, next) => {
+    // Multer error handling middleware
+    upload.single("avatar")(req, res, (err) => {
+      if (err instanceof multer.MulterError) {
+        // A Multer error occurred (e.g., file too large, wrong field name)
+        return res.status(400).json({
+          success: false,
+          message: err.message,
         });
-
-    }
+      } else if (err) {
+        // An unknown error occurred
+        return res.status(500).json({
+          success: false,
+          message: err.message,
+        });
+      }
+      // Everything went fine, proceed to controller
+      next();
+    });
+  },
+  updateProfile
 );
 
 export default router;

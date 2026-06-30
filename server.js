@@ -49,7 +49,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // ================= STATIC FILES =================
 app.use("/files", express.static(path.join(__dirname, "public/files"))); // for notes & other uploads
-// app.use("/upload", express.static("upload"));
+app.use("/upload", express.static("upload"));
 app.use("/upload", express.static(path.join(__dirname, "upload")));
 
 // ================= ROUTES =================

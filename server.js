@@ -53,14 +53,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // ================= STATIC FILES =================
-// app.use("/files", express.static(path.join(__dirname, "public/files"))); // for notes & other uploads
-// app.use("/uploads", express.static("uploads"));
-// app.use("/upload", express.static(path.join(__dirname, "upload")));
-
-
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/files", express.static(path.join(__dirname, "public/files"))); // for notes & other uploads
+app.use("/uploads", express.static("uploads"));
 app.use("/upload", express.static(path.join(__dirname, "upload")));
-app.use("/files", express.static(path.join(__dirname, "public/files"))); 
+
+
+// app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// app.use("/upload", express.static(path.join(__dirname, "upload")));
+// app.use("/files", express.static(path.join(__dirname, "public/files"))); 
 
 // ================= ROUTES =================
 app.use("/auth", authRoute);

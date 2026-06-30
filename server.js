@@ -13,6 +13,14 @@ import enrollRoute from "./routes/enrollRoutes.js";
 import moduleRoutes from "./routes/moduleRoutes.js";
 import refundRoutes from "./routes/refundRoutes.js";
 import notesRoutes from "./routes/notesRoutes.js";
+import certificateRoutes from "./routes/certificateRoutes.js";
+
+
+// ------------------------------------------------------------
+// 1. Setup __dirname for ES modules
+// ------------------------------------------------------------
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // CONFIG
 import "./config/passport.js";
@@ -39,8 +47,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // ================= STATIC FILES =================
-app.use("/files", express.static("public/files"));
+app.use("/files", express.static(path.join(__dirname, "public/files"))); // for notes & other uploads
 app.use("/uploads", express.static("uploads"));
+app.use("/upload", express.static(path.join(__dirname, "upload")));
 
 // ================= ROUTES =================
 app.use("/auth", authRoute);
@@ -50,6 +59,8 @@ app.use("/enroll", enrollRoute);
 app.use("/api/modules", moduleRoutes);
 app.use("/refund", refundRoutes);
 app.use("/notes", notesRoutes);
+app.use("/certificate", certificateRoutes);
+
 
 // ================= TEST ROUTE =================
 app.get("/", (req, res) => {

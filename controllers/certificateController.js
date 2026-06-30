@@ -214,7 +214,7 @@ export const uploadCertificate = async (req, res) => {
 
     // ✅ Fixed: use "/uploads" (plural) – matches static route
     const baseUrl = `${req.protocol}://${req.get("host")}`;
-    const fileUrl = `${baseUrl}/uploads/certificates/${req.file.filename}`;
+    const fileUrl = `${baseUrl}/upload/certificates/${req.file.filename}`;
 
     application.certificateUrl = fileUrl;
     await application.save();

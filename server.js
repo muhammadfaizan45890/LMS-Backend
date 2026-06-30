@@ -1,14 +1,30 @@
 import express from "express";
-import dotenv from "dotenv";
 import cors from "cors";
-import passport from "passport";
-import { fileURLToPath } from 'url';   // ✅ added
-import path from 'path';               // ✅ added
+import passport from "passport";           // used indirectly (required for auth routes)
+import dotenv from "dotenv";
+import { fileURLToPath } from "url";
+import path from "path";
 
-// ✅ FIXED PATHS (NO ../)
+// ------------------------------------------------------------
+// 1. Load environment variables FIRST
+// ------------------------------------------------------------
+dotenv.config();
+
+// ------------------------------------------------------------
+// 2. Setup __dirname for ES modules
+// ------------------------------------------------------------
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// ------------------------------------------------------------
+// 3. Database connection & Passport config
+// ------------------------------------------------------------
 import connectDB from "./database/db.js";
+import "./config/passport.js";   // ← only once
 
-// ROUTES
+// ------------------------------------------------------------
+// 4. Routes
+// ------------------------------------------------------------
 import userRoute from "./routes/userRoute.js";
 import authRoute from "./routes/authRoute.js";
 import adminRoute from "./routes/adminRoute.js";
@@ -18,51 +34,38 @@ import refundRoutes from "./routes/refundRoutes.js";
 import notesRoutes from "./routes/notesRoutes.js";
 import certificateRoutes from "./routes/certificateRoutes.js";
 
-
-import "./config/passport.js";
-
-
 // ------------------------------------------------------------
-// 1. Setup __dirname for ES modules
+// 5. Express app
 // ------------------------------------------------------------
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// CONFIG
-import "./config/passport.js";
-
-dotenv.config();
-
 const app = express();
 
-// ================= DATABASE =================
+// Connect to MongoDB
 connectDB();
 
-// ================= MIDDLEWARE =================
+// Middleware
 app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://lms-courseacademy.vercel.app"
+      "https://lms-courseacademy.vercel.app",
     ],
-    credentials: true
+    credentials: true,
   })
 );
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ================= STATIC FILES =================
-app.use("/files", express.static(path.join(__dirname, "public/files"))); // for notes & other uploads
-app.use("/uploads", express.static("uploads"));
-app.use("/upload", express.static(path.join(__dirname, "upload")));
+// ------------------------------------------------------------
+// 6. Static file serving (absolute paths)
+// ------------------------------------------------------------
+app.use("/files", express.static(path.join(__dirname, "public/files")));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));   // if you have an 'uploads' folder
+app.use("/upload", express.static(path.join(__dirname, "upload")));     // if you have an 'upload' folder
 
-
-// app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-// app.use("/upload", express.static(path.join(__dirname, "upload")));
-// app.use("/files", express.static(path.join(__dirname, "public/files"))); 
-
-// ================= ROUTES =================
+// ------------------------------------------------------------
+// 7. Routes
+// ------------------------------------------------------------
 app.use("/auth", authRoute);
 app.use("/user", userRoute);
 app.use("/admin", adminRoute);
@@ -72,17 +75,124 @@ app.use("/refund", refundRoutes);
 app.use("/notes", notesRoutes);
 app.use("/certificate", certificateRoutes);
 
-// ================= TEST ROUTE =================
+// ------------------------------------------------------------
+// 8. Health check
+// ------------------------------------------------------------
 app.get("/", (req, res) => {
   res.send("Backend Running Successfully 🚀");
 });
 
-// ================= START SERVER =================
+// ------------------------------------------------------------
+// 9. Start server
+// ------------------------------------------------------------
 const PORT = process.env.PORT || 8000;
-
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
+
+
+
+
+
+
+
+
+
+
+
+// import express from "express";
+// import dotenv from "dotenv";
+// import cors from "cors";
+// import passport from "passport";
+// import { fileURLToPath } from 'url';   // ✅ added
+// import path from 'path';               // ✅ added
+
+// // ✅ FIXED PATHS (NO ../)
+// import connectDB from "./database/db.js";
+
+// // ROUTES
+// import userRoute from "./routes/userRoute.js";
+// import authRoute from "./routes/authRoute.js";
+// import adminRoute from "./routes/adminRoute.js";
+// import enrollRoute from "./routes/enrollRoutes.js";
+// import moduleRoutes from "./routes/moduleRoutes.js";
+// import refundRoutes from "./routes/refundRoutes.js";
+// import notesRoutes from "./routes/notesRoutes.js";
+// import certificateRoutes from "./routes/certificateRoutes.js";
+
+
+// import "./config/passport.js";
+
+
+// // ------------------------------------------------------------
+// // 1. Setup __dirname for ES modules
+// // ------------------------------------------------------------
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
+
+// // CONFIG
+// import "./config/passport.js";
+
+// dotenv.config();
+
+// const app = express();
+
+// // ================= DATABASE =================
+// connectDB();
+
+// // ================= MIDDLEWARE =================
+// app.use(
+//   cors({
+//     origin: [
+//       "http://localhost:5173",
+//       "https://lms-courseacademy.vercel.app"
+//     ],
+//     credentials: true
+//   })
+// );
+
+// app.use(express.json());
+// app.use(express.urlencoded({ extended: true }));
+
+// // ================= STATIC FILES =================
+// app.use("/files", express.static(path.join(__dirname, "public/files"))); // for notes & other uploads
+// app.use("/uploads", express.static("uploads"));
+// app.use("/upload", express.static(path.join(__dirname, "upload")));
+
+
+// // app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// // app.use("/upload", express.static(path.join(__dirname, "upload")));
+// // app.use("/files", express.static(path.join(__dirname, "public/files"))); 
+
+// // ================= ROUTES =================
+// app.use("/auth", authRoute);
+// app.use("/user", userRoute);
+// app.use("/admin", adminRoute);
+// app.use("/enroll", enrollRoute);
+// app.use("/api/modules", moduleRoutes);
+// app.use("/refund", refundRoutes);
+// app.use("/notes", notesRoutes);
+// app.use("/certificate", certificateRoutes);
+
+// // ================= TEST ROUTE =================
+// app.get("/", (req, res) => {
+//   res.send("Backend Running Successfully 🚀");
+// });
+
+// // ================= START SERVER =================
+// const PORT = process.env.PORT || 8000;
+
+// app.listen(PORT, () => {
+//   console.log(`🚀 Server running on port ${PORT}`);
+// });
+
+
+
+
+
+
+
+
 
 
 

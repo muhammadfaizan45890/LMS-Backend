@@ -1,6 +1,8 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import { fileURLToPath } from 'url';   // ✅ added
+import path from 'path';               // ✅ added
 
 // ✅ FIXED PATHS (NO ../)
 import connectDB from "./database/db.js";
@@ -14,7 +16,6 @@ import moduleRoutes from "./routes/moduleRoutes.js";
 import refundRoutes from "./routes/refundRoutes.js";
 import notesRoutes from "./routes/notesRoutes.js";
 import certificateRoutes from "./routes/certificateRoutes.js";
-
 
 // ------------------------------------------------------------
 // 1. Setup __dirname for ES modules
@@ -60,7 +61,6 @@ app.use("/api/modules", moduleRoutes);
 app.use("/refund", refundRoutes);
 app.use("/notes", notesRoutes);
 app.use("/certificate", certificateRoutes);
-
 
 // ================= TEST ROUTE =================
 app.get("/", (req, res) => {

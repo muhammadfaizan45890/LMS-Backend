@@ -168,17 +168,18 @@ export const enrollCourse = async (req, res) => {
       })
     }
 
-    // ================= CHECK WEEKLY LIMIT (one enrollment per user per 7 days) =================
-    const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // UTC-based
+    // ================= CHECK WEEKLY LIMIT (max 2 enrollments per 7 days) =================
+    const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // UTC
 
     const recentEnrollments = await Enrollment.countDocuments({
       userId,
       createdAt: { $gte: oneWeekAgo }
     })
 
-    if (recentEnrollments > 0) {
+    // Allow up to 2; block if already 2 or more
+    if (recentEnrollments >= 2) {
       return res.status(429).json({
-        message: "You can only enroll in one course per week. Please wait until next week."
+        message: "You can enroll in a maximum of 2 courses per week. Please wait until next week."
       })
     }
 
